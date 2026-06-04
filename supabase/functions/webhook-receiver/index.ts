@@ -30,11 +30,33 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 // ---------------------------------------------------------------------------
 // Helpers to read fields out of a Formstack payload. Formstack's webhook body
-// shape varies by account/config, so we look in the common places rather than
-// assuming one exact schema. Verify the real shape against a test submission
-// and tighten these once known.
+// shape varies by account/config, so we look in the common places (top level +
+// known nested containers) rather than assuming one exact schema. The diagnose()
+// helper makes the FIRST test submission self-documenting — see the audit log.
 // ---------------------------------------------------------------------------
 type AnyObj = Record<string, unknown>;
+
+// Candidate keys per logical field. Reused for both extraction and diagnostics,
+// so the audit log tells us exactly which key matched (or that none did).
+const KEY_CANDIDATES: Record<string, string[]> = {
+  submission_id: ["UniqueID", "unique_id", "submission_id", "id"],
+  form_id: ["FormID", "form_id", "form"],
+  session_id: ["session_id", "sessionId"],
+  plan: ["plan"],
+  email: ["email", "Email"],
+  payment_status: ["payment_status", "PaymentStatus", "payment", "transaction_status"],
+  amount: ["amount_cents", "amount", "total", "payment_amount"],
+  stripe_charge_id: ["stripe_charge_id", "charge_id", "transaction_id"],
+};
+
+// Formstack may nest the field map under one of these.
+const CONTAINER_KEYS = ["data", "fields", "FormData"];
+
+function containersOf(payload: AnyObj): AnyObj[] {
+  return CONTAINER_KEYS.map((k) => payload[k]).filter(
+    (c): c is AnyObj => !!c && typeof c === "object",
+  );
+}
 
 function pick(obj: AnyObj, keys: string[]): string | undefined {
   for (const k of keys) {
@@ -45,19 +67,42 @@ function pick(obj: AnyObj, keys: string[]): string | undefined {
   return undefined;
 }
 
-// Hidden fields may arrive top-level, under `data`, or as a flat field map.
-// Search broadly for a `session_id`-looking value.
-function findSessionId(payload: AnyObj): string | undefined {
-  const direct = pick(payload, ["session_id", "sessionId"]);
-  if (direct) return direct;
-
-  const containers = [payload["data"], payload["fields"], payload["FormData"]]
-    .filter((c): c is AnyObj => !!c && typeof c === "object");
-  for (const c of containers) {
-    const v = pick(c as AnyObj, ["session_id", "sessionId"]);
-    if (v) return v;
+// Search top level + nested containers for the first matching value.
+function pickDeep(payload: AnyObj, keys: string[]): string | undefined {
+  for (const scope of [payload, ...containersOf(payload)]) {
+    const v = pick(scope, keys);
+    if (v !== undefined) return v;
   }
   return undefined;
+}
+
+// Which candidate key actually carried a value (key NAME only — no PII value).
+function firstKey(payload: AnyObj, keys: string[]): string | null {
+  for (const scope of [payload, ...containersOf(payload)]) {
+    for (const k of keys) {
+      const v = scope[k];
+      if ((typeof v === "string" && v.trim() !== "") || typeof v === "number") return k;
+    }
+  }
+  return null;
+}
+
+// Self-documenting payload shape: top-level key names, nested container key
+// names, and which candidate key each logical field resolved from. Contains NO
+// field values (no PII) — safe to store in audit_logs. After the first test
+// submission, `resolvedFrom.payment_status === null` immediately tells us the
+// real Stripe status key isn't in our candidate list yet.
+function diagnose(payload: AnyObj) {
+  const resolvedFrom: Record<string, string | null> = {};
+  for (const [field, cands] of Object.entries(KEY_CANDIDATES)) {
+    resolvedFrom[field] = firstKey(payload, cands);
+  }
+  const containerKeys: Record<string, string[]> = {};
+  for (const k of CONTAINER_KEYS) {
+    const c = payload[k];
+    if (c && typeof c === "object") containerKeys[k] = Object.keys(c as AnyObj);
+  }
+  return { topLevelKeys: Object.keys(payload), containerKeys, resolvedFrom };
 }
 
 function mapPaymentStatus(raw?: string): "unpaid" | "paid" | "failed" | "refunded" {
@@ -95,27 +140,30 @@ Deno.serve(async (req) => {
     return json({ error: "bad_payload" }, 400);
   }
 
-  const formstackSubmissionId = pick(payload, [
-    "UniqueID", "unique_id", "submission_id", "id",
-  ]);
+  // Self-documenting shape (key names only) — surfaced in every audit log so the
+  // first real submission reveals the exact field names without DB spelunking.
+  const shape = diagnose(payload);
+
+  const formstackSubmissionId = pickDeep(payload, KEY_CANDIDATES.submission_id);
   if (!formstackSubmissionId) {
-    // We can't dedupe without an id; store nothing mutable, just audit it.
+    // We can't dedupe without an id; store nothing mutable, just audit it
+    // (full payload here, since this is the case we most need to debug).
     await admin.from("audit_logs").insert({
       actor_type: "webhook",
       action: "webhook_missing_submission_id",
       entity: "formstack_submissions",
-      metadata: { payload },
+      metadata: { payload_shape: shape, payload },
     });
-    return json({ error: "missing_submission_id" }, 422);
+    return json({ error: "missing_submission_id", payload_shape: shape }, 422);
   }
 
-  const sessionId = findSessionId(payload);
-  const formId = pick(payload, ["FormID", "form_id", "form"]);
-  const plan = pick(payload, ["plan"]); // hidden field, prefilled by the app
-  const email = pick(payload, ["email", "Email"]);
-  const paymentStatus = mapPaymentStatus(pick(payload, ["payment_status", "PaymentStatus"]));
-  const amount = pick(payload, ["amount_cents", "amount"]);
-  const stripeChargeId = pick(payload, ["stripe_charge_id", "charge_id"]);
+  const sessionId = pickDeep(payload, KEY_CANDIDATES.session_id);
+  const formId = pickDeep(payload, KEY_CANDIDATES.form_id);
+  const plan = pickDeep(payload, KEY_CANDIDATES.plan); // hidden field, app-prefilled
+  const email = pickDeep(payload, KEY_CANDIDATES.email);
+  const paymentStatus = mapPaymentStatus(pickDeep(payload, KEY_CANDIDATES.payment_status));
+  const amount = pickDeep(payload, KEY_CANDIDATES.amount);
+  const stripeChargeId = pickDeep(payload, KEY_CANDIDATES.stripe_charge_id);
 
   // 3. Resolve the lead (by linked session, else by email; create if neither).
   let leadId: string | undefined;
@@ -200,8 +248,15 @@ Deno.serve(async (req) => {
     actor_type: "webhook",
     action: isOrphan ? "submission_received_orphan" : "submission_received",
     entity: "formstack_submissions",
-    metadata: { formstackSubmissionId, sessionId, leadId, paymentStatus, isOrphan },
+    metadata: {
+      formstackSubmissionId,
+      sessionId,
+      leadId,
+      paymentStatus,
+      isOrphan,
+      payload_shape: shape, // key names + resolvedFrom map (no PII)
+    },
   });
 
-  return json({ ok: true, correlated: !isOrphan, orphan: isOrphan });
+  return json({ ok: true, correlated: !isOrphan, orphan: isOrphan, payload_shape: shape });
 });
