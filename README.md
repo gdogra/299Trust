@@ -92,4 +92,3 @@ https://fdrdecpzihlztncvglwx.supabase.co/functions/v1/webhook-receiver?secret=<F
 - Admin funnel dashboard.
 - V2: AI-guided intake (tables already present: `ai_conversations`,
   `ai_answer_mappings`).
-# 299Trust
