@@ -1,8 +1,8 @@
-# 299Trust — Mobile App Backend (V1)
+# 299Trust — Mobile App (V1)
 
-Customer-facing mobile app that wraps the existing 299Trust DIY revocable
-living-trust flow. **Formstack stays the source of truth** for the
-questionnaire, Stripe payment, and document generation. This backend only
+Customer-facing **React Native / Expo** app that wraps the existing 299Trust
+DIY revocable living-trust flow. **Formstack stays the source of truth** for the
+questionnaire, Stripe payment, and document generation. The backend only
 **mirrors funnel state** and **correlates** an app session to a Formstack
 submission so we can measure where users enter, abandon, pay, and complete.
 
@@ -11,13 +11,34 @@ No legal documents are stored.
 ## What's here
 
 ```
+app/                                # Expo Router screens (the funnel)
+  _layout.tsx                       #   fonts + providers + navigation
+  index → how-it-works → plans → checklist → lead → questionnaire → status
+src/
+  theme/tokens.ts                   # brand system (edit here to rebrand)
+  components/                       # Screen, Button, Card, Text, Progress, TrustBadge
+  session/SessionProvider.tsx       # session mint + offline funnel-event buffer
+  api/client.ts                     # typed client for the Edge Functions
+  constants/                        # plans, public config
 supabase/
   migrations/0001_init.sql          # schema + RLS (default-deny)
+  functions/session|event|lead/     # app-facing API
   functions/webhook-receiver/       # Formstack -> Supabase correlation endpoint
-  functions/_shared/cors.ts
   config.toml
 .env.example                        # copy to .env; never commit .env
 ```
+
+## Run the app
+
+```bash
+npm install
+cp .env.example .env        # fill EXPO_PUBLIC_* (publishable key + Formstack URL)
+npm start                   # then press i (iOS) / a (Android), or scan in Expo Go
+```
+
+The questionnaire screen shows a clear placeholder until
+`EXPO_PUBLIC_FORMSTACK_FORM_URL` points at the real form; once set, it embeds
+the form with `session_id` + `plan` injected for correlation.
 
 ## The core idea: session correlation
 
