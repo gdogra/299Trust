@@ -33,6 +33,7 @@ const config: ExpoConfig = {
     formstackFormUrl:
       process.env.EXPO_PUBLIC_FORMSTACK_FORM_URL ??
       "https://REPLACE-ME.formstack.com/forms/your_form_id",
+    aiIntakeEnabled: process.env.EXPO_PUBLIC_AI_INTAKE_ENABLED === "true",
   },
 };
 

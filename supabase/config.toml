@@ -21,3 +21,7 @@ verify_jwt = false
 # Admin dashboard metrics — gated by ADMIN_API_SECRET inside the function.
 [functions.admin-metrics]
 verify_jwt = false
+
+# V2 AI-guided intake. Calls Anthropic; reads ANTHROPIC_API_KEY from secrets.
+[functions.ai-intake]
+verify_jwt = false

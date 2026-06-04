@@ -148,7 +148,33 @@ hosting). Upgrade to Supabase Auth + an `admin` role before wide exposure.
   caller — they only INSERT funnel data, but add **rate limiting** and
   abuse protection (e.g. CAPTCHA on `/lead`) before going live.
 
+## AI-guided intake (V2)
+
+A conversational alternative to the form: `ai-intake` Edge Function chats with
+the customer (Anthropic SDK, `claude-opus-4-8` default — override via
+`ANTHROPIC_MODEL`), maps answers to Formstack fields via tool use, and persists
+them to `ai_conversations` / `ai_answer_mappings`.
+
+**Guardrails (estate-planning stakes are real):**
+
+- The assistant guides intake; it does **not** give legal advice (enforced in
+  the system prompt).
+- **Human-in-the-loop:** sensitive answers (beneficiaries, trustees, guardians)
+  come back flagged `needs_confirmation` and are confirmed in-conversation —
+  the AI never finalizes who inherits on its own.
+- It does **not** auto-submit to Formstack — Formstack stays the source of
+  truth; mappings are staged for a final human-reviewed hand-off.
+
+Field map in `functions/_shared/formstack-map.ts` (placeholder ids — replace
+with real ones). In the app, set `EXPO_PUBLIC_AI_INTAKE_ENABLED=true` to expose
+the "guided assistant (beta)" entry on the checklist screen.
+
+```bash
+supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+supabase functions deploy ai-intake
+```
+
 ## Not built yet (next)
 
-- V2: AI-guided conversational intake (tables present: `ai_conversations`,
-  `ai_answer_mappings`).
+- Real Formstack field map + a confirmed-answers → Formstack hand-off for the
+  AI intake path.

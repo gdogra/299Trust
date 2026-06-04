@@ -6,6 +6,7 @@ type Extra = {
   supabaseUrl: string;
   supabasePublishableKey: string;
   formstackFormUrl: string;
+  aiIntakeEnabled: boolean;
 };
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Partial<Extra>;
@@ -20,3 +21,6 @@ export const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 export const FORMSTACK_FORM_URL = extra.formstackFormUrl ?? "";
 
 export const isFormstackConfigured = !FORMSTACK_FORM_URL.includes("REPLACE-ME");
+
+// V2 AI-guided intake is off by default; flip via EXPO_PUBLIC_AI_INTAKE_ENABLED.
+export const AI_INTAKE_ENABLED = extra.aiIntakeEnabled === true;

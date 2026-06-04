@@ -69,4 +69,21 @@ export const api = {
   }) {
     return post<{ lead_id: string }>("lead", input);
   },
+
+  // V2 AI-guided intake. Returns the assistant's next message plus any answers
+  // it recorded; needs_confirmation flags sensitive answers for human review.
+  aiIntake(input: {
+    session_id?: string;
+    conversation_id?: string;
+    plan?: PlanId;
+    message: string;
+  }) {
+    return post<{
+      conversation_id: string;
+      reply: string;
+      recorded: Array<Record<string, unknown>>;
+      needs_confirmation: Array<Record<string, unknown>>;
+      complete: boolean;
+    }>("ai-intake", input);
+  },
 };

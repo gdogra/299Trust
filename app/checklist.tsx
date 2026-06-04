@@ -7,6 +7,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { Progress } from "@/components/Progress";
 import type { PlanId } from "@/constants/plans";
+import { AI_INTAKE_ENABLED } from "@/constants/config";
 import { colors, space } from "@/theme/tokens";
 
 // "What you'll need" pre-flight screen. One of the two highest-leverage
@@ -25,10 +26,19 @@ export default function Checklist() {
   return (
     <Screen
       footer={
-        <Button
-          title="I'm ready — continue"
-          onPress={() => router.push({ pathname: "/lead", params: { plan } })}
-        />
+        <View style={{ gap: space(3) }}>
+          <Button
+            title="I'm ready — continue"
+            onPress={() => router.push({ pathname: "/lead", params: { plan } })}
+          />
+          {AI_INTAKE_ENABLED ? (
+            <Button
+              title="Try the guided assistant (beta)"
+              variant="ghost"
+              onPress={() => router.push({ pathname: "/ai-intake", params: { plan } })}
+            />
+          ) : null}
+        </View>
       }
     >
       <Progress step={1} total={4} />
