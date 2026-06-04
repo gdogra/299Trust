@@ -78,6 +78,19 @@ https://fdrdecpzihlztncvglwx.supabase.co/functions/v1/webhook-receiver?secret=<F
 2. **Does Stripe payment status arrive in the same webhook or a separate
    event?** Determines whether `payment_status` updates in one call or two.
 
+## App-facing API (Edge Functions)
+
+The mobile app talks to these, never to PostgREST directly. Base URL:
+`https://fdrdecpzihlztncvglwx.supabase.co/functions/v1/`
+
+| Endpoint | Body | Returns | Notes |
+|---|---|---|---|
+| `POST /session` | `{device_id?, platform?, app_version?, entry_source?}` | `{session_id}` | Creates a session; auto-logs `app_opened`. |
+| `POST /event` | `{session_id, event_type, step?, metadata?}` or `{session_id, events:[...]}` | `{inserted}` | Single or batch. Rejects non-canonical `event_type`. Bumps `last_seen_at`; `session_abandoned` marks the session abandoned. |
+| `POST /lead` | `{session_id?, email?, full_name?, phone?, plan_interest?, marketing_optin?}` | `{lead_id}` | Dedupes by email; links session→lead. |
+
+Deploy: `supabase functions deploy session event lead webhook-receiver`
+
 ## Security notes
 
 - `.env` is gitignored. Only the **publishable** key ships in the app;
@@ -85,9 +98,14 @@ https://fdrdecpzihlztncvglwx.supabase.co/functions/v1/webhook-receiver?secret=<F
 - RLS is default-deny on every table. The app talks to Edge Functions, not
   PostgREST directly. Admin read access is added later via an `admin` claim.
 
+### Hardening (before launch)
+
+- App-facing functions run with `verify_jwt = false` and currently accept any
+  caller — they only INSERT funnel data, but add **rate limiting** and
+  abuse protection (e.g. CAPTCHA on `/lead`) before going live.
+
 ## Not built yet (next)
 
-- App-facing Edge Functions: `POST /session`, `POST /event`, `POST /lead`.
 - Expo app (onboarding, plan/pricing, WebView, status).
 - Admin funnel dashboard.
 - V2: AI-guided intake (tables already present: `ai_conversations`,

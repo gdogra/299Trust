@@ -5,3 +5,15 @@ project_id = "fdrdecpzihlztncvglwx"
 [functions.webhook-receiver]
 # Formstack calls this server-to-server with ?secret=... — no Supabase JWT.
 verify_jwt = false
+
+# App-facing functions: the mobile app authenticates with the publishable key,
+# which is not a JWT under the new key format, so gateway JWT checks are off.
+# These only INSERT low-risk funnel data; add rate limiting before launch.
+[functions.session]
+verify_jwt = false
+
+[functions.event]
+verify_jwt = false
+
+[functions.lead]
+verify_jwt = false
