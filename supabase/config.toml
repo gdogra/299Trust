@@ -1,0 +1,7 @@
+# Minimal Supabase CLI config. `supabase link --project-ref <ref>` connects
+# this to the hosted project; the ref is not a secret.
+project_id = "fdrdecpzihlztncvglwx"
+
+[functions.webhook-receiver]
+# Formstack calls this server-to-server with ?secret=... — no Supabase JWT.
+verify_jwt = false

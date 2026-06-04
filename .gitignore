@@ -1,0 +1,17 @@
+# secrets
+.env
+.env.local
+.env.*.local
+
+# node / expo (added when the app scaffold lands)
+node_modules/
+.expo/
+dist/
+*.log
+
+# supabase
+supabase/.branches/
+supabase/.temp/
+
+# os
+.DS_Store
