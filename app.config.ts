@@ -32,7 +32,7 @@ const config: ExpoConfig = {
     supabasePublishableKey: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
     formstackFormUrl:
       process.env.EXPO_PUBLIC_FORMSTACK_FORM_URL ??
-      "https://REPLACE-ME.formstack.com/forms/your_form_id",
+      "https://299trust.formstack.com/forms/us_estate_planning",
     aiIntakeEnabled: process.env.EXPO_PUBLIC_AI_INTAKE_ENABLED === "true",
   },
 };
