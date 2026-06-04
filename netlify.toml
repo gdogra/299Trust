@@ -1,0 +1,18 @@
+# Netlify deploys the ADMIN DASHBOARD (dashboard/), not the Expo mobile app.
+# This file overrides the build settings in the Netlify UI.
+#
+# `publish` is relative to `base`, so dashboard/dist.
+[build]
+  base = "dashboard"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Single-page app: serve index.html for any path (the dashboard has no router
+# today, but this future-proofs it and avoids 404s on refresh).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
