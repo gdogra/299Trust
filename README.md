@@ -112,6 +112,29 @@ The mobile app talks to these, never to PostgREST directly. Base URL:
 
 Deploy: `supabase functions deploy session event lead webhook-receiver`
 
+## Admin dashboard (`dashboard/`)
+
+Vite + React funnel dashboard: KPI cards (sessions, leads, paid, conversion),
+the step-by-step conversion funnel with drop-off, recent sessions, and an
+orphan-submission warning. Reads aggregates from the `admin-metrics` Edge
+Function (gated by `ADMIN_API_SECRET`), which queries the read-only views in
+`migrations/0002_admin_views.sql`.
+
+```bash
+# backend
+supabase secrets set ADMIN_API_SECRET=$(openssl rand -hex 24)
+supabase functions deploy admin-metrics
+
+# dashboard
+cd dashboard && npm install
+cp .env.example .env      # set VITE_FUNCTIONS_URL
+npm run dev               # enter the ADMIN_API_SECRET at the login screen
+```
+
+The admin secret is entered at runtime (localStorage), never baked into the
+build. Deploy the static `dashboard/dist` anywhere (Netlify, Vercel, Supabase
+hosting). Upgrade to Supabase Auth + an `admin` role before wide exposure.
+
 ## Security notes
 
 - `.env` is gitignored. Only the **publishable** key ships in the app;
@@ -127,7 +150,5 @@ Deploy: `supabase functions deploy session event lead webhook-receiver`
 
 ## Not built yet (next)
 
-- Expo app (onboarding, plan/pricing, WebView, status).
-- Admin funnel dashboard.
-- V2: AI-guided intake (tables already present: `ai_conversations`,
+- V2: AI-guided conversational intake (tables present: `ai_conversations`,
   `ai_answer_mappings`).

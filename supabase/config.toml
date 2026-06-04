@@ -17,3 +17,7 @@ verify_jwt = false
 
 [functions.lead]
 verify_jwt = false
+
+# Admin dashboard metrics — gated by ADMIN_API_SECRET inside the function.
+[functions.admin-metrics]
+verify_jwt = false
