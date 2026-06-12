@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>299Trust — V1 Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --primary:#13433D; --primary-dark:#0E322E; --accent:#C9A24B; --accent-soft:#F3E9CF;
+    --bg:#F7F4EE; --surface:#FFFFFF; --ink:#1A1F1D; --muted:#5B655F; --line:#E4DECF;
+    --success:#2E7D5B; --on-primary:#F7F4EE; --primary-soft:#E7EEEB;
+    --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;min-height:100vh;background:radial-gradient(900px 600px at 50% -10%, #20564e, #0c2a26);
+    font-family:var(--sans);color:var(--ink);display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:18px;padding:28px 14px}
+  .caption{color:#dfe8e3;font-size:13px;text-align:center;max-width:380px;line-height:1.5}
+  .caption b{color:#fff}
+  /* phone */
+  .phone{width:390px;max-width:94vw;height:780px;max-height:88vh;background:#0b0b0c;border-radius:46px;
+    padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.5), 0 0 0 2px #2a2a2c inset;position:relative}
+  .screenwrap{width:100%;height:100%;background:var(--bg);border-radius:36px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:130px;height:26px;background:#0b0b0c;border-radius:0 0 18px 18px;z-index:30}
+  .statusbar{height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;font-size:12px;font-weight:600;color:var(--ink)}
+  .scroll{flex:1;overflow-y:auto;padding:8px 24px 16px}
+  .scroll::-webkit-scrollbar{display:none}
+  .footer{flex:0 0 auto;padding:12px 24px calc(20px);border-top:1px solid var(--line);background:var(--bg)}
+  /* type */
+  h1.display{font-family:var(--serif);font-weight:700;font-size:33px;line-height:1.12;margin:0 0 12px;letter-spacing:-.5px}
+  h2.h1{font-family:var(--serif);font-weight:700;font-size:25px;line-height:1.2;margin:0 0 8px}
+  h3.h2{font-family:var(--serif);font-weight:600;font-size:19px;margin:0}
+  p.sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0 0 18px}
+  .small{font-size:12px;color:var(--muted)}
+  /* components */
+  .btn{display:block;width:100%;height:52px;border:0;border-radius:999px;background:var(--primary);color:var(--on-primary);
+    font-family:var(--sans);font-weight:600;font-size:16px;cursor:pointer;transition:opacity .15s}
+  .btn:active{opacity:.85}
+  .btn.secondary{background:var(--surface);color:var(--primary);border:1px solid var(--primary)}
+  .btn.ghost{background:transparent;color:var(--primary);height:44px}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:var(--primary-soft);color:var(--primary-dark);
+    border-radius:999px;padding:6px 12px;font-size:13px;margin:4px 0;width:fit-content}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--success)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;
+    box-shadow:0 6px 16px rgba(26,31,29,.05)}
+  .card.sel{border:2px solid var(--primary)}
+  .num{width:40px;height:40px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-weight:700;color:var(--primary-dark);flex:0 0 40px}
+  .mark{width:62px;height:62px;border-radius:20px;background:var(--primary);display:flex;align-items:center;justify-content:center;
+    color:var(--accent);font-family:var(--serif);font-weight:700;font-size:23px;margin-bottom:18px}
+  .price{font-family:var(--serif);font-weight:700;font-size:27px;color:var(--primary)}
+  .feat{display:flex;align-items:center;gap:12px;margin-top:9px;font-size:14px}
+  .check{width:8px;height:8px;border-radius:50%;background:var(--success)}
+  .eyebrow{font-size:11px;letter-spacing:1px;color:var(--accent);font-weight:600;text-transform:uppercase}
+  .input{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;padding:0 14px;font-size:15px;
+    font-family:var(--sans);background:var(--surface);margin-bottom:12px;color:var(--ink)}
+  .label{font-size:13px;font-weight:600;margin:8px 0 6px;display:block}
+  .checkbig{width:64px;height:64px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;
+    color:var(--on-primary);font-size:30px;margin:6px 0 18px}
+  .progress{display:flex;gap:6px;margin:6px 0 18px}
+  .seg{flex:1;height:5px;border-radius:999px;background:var(--line)}
+  .seg.on{background:var(--primary)}
+  .screen{display:none;flex-direction:column;height:100%}
+  .screen.active{display:flex}
+  .center{justify-content:center}
+  .formframe{flex:1;border:1px dashed var(--line);border-radius:16px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;gap:10px;padding:24px;color:var(--muted);background:#fbfaf6}
+  .pill{font-size:11px;background:var(--accent-soft);color:var(--primary-dark);border-radius:999px;padding:3px 9px;font-weight:600}
+  /* nav rail */
+  .rail{display:flex;gap:10px;align-items:center;color:#cfe0da;font-size:12px}
+  .rail button{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:10px;padding:8px 12px;cursor:pointer;font-family:var(--sans)}
+  .rail button:disabled{opacity:.35;cursor:default}
+  /* Mobile: drop the phone frame so the app fills the screen (feels real on Dave's phone). */
+  @media (max-width:560px){
+    body{padding:0;background:var(--bg);gap:0;justify-content:flex-start}
+    .caption{display:none}
+    .phone{width:100vw;height:100dvh;max-width:none;max-height:none;border-radius:0;padding:0;box-shadow:none}
+    .screenwrap{border-radius:0}
+    .notch{display:none}
+    .rail{position:fixed;top:10px;right:12px;gap:6px;z-index:50}
+    .rail #ind{display:none}
+    .rail button{background:rgba(19,67,61,.85);color:#fff;font-size:11px;padding:6px 10px}
+  }
+</style>
+</head>
+<body>
+  <div class="caption">An <b>interactive preview</b> of the 299Trust V1 we've built — the live app runs this exact flow against a real Supabase backend &amp; your Formstack form. Tap through it.</div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screenwrap">
+      <div class="statusbar"><span>9:41</span><span>299Trust</span></div>
+      <div id="stage"></div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <button id="prev">‹ Back</button>
+    <span id="ind">Welcome</span>
+    <button id="next">Next ›</button>
+  </div>
+
+<script>
+const screens = [
+  {key:'welcome', body:`
+    <div class="screen active center">
+      <div class="scroll center" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="mark">299</div>
+        <h1 class="display">A living trust, without the law firm.</h1>
+        <p class="sub" style="font-size:17px">Protect your family and your home with a complete revocable living trust — guided step by step, completed from your phone.</p>
+        <span class="badge"><span class="dot"></span>Estate-planning documents</span>
+        <span class="badge"><span class="dot"></span>Flat $299 — no hourly fees</span>
+        <span class="badge"><span class="dot"></span>Your information stays private</span>
+      </div>
+      <div class="footer">
+        <button class="btn" data-go="1">Get started</button>
+        <p class="small" style="text-align:center;margin:10px 0 0">299Trust provides self-help document preparation, not legal advice.</p>
+      </div>
+    </div>`},
+  {key:'How it works', body:`
+    <div class="screen active">
+      <div class="scroll">
+        <h2 class="h1">Three steps to peace of mind</h2>
+        <p class="sub">Most people finish in under 30 minutes. You can pause and pick up right where you left off.</p>
+        ${[['1','Answer simple questions','We ask about your family, home, and wishes in plain language — no legal jargon.'],
+           ['2','We prepare your documents','Your answers generate a complete, ready-to-sign trust package tailored to you.'],
+           ['3','Sign and protect your family','Download, print, and sign. We guide you through making it official.']]
+          .map(s=>`<div class="card"><div style="display:flex;gap:16px;align-items:flex-start">
+            <div class="num">${s[0]}</div><div><h3 class="h2">${s[1]}</h3>
+            <p class="sub" style="margin:6px 0 0">${s[2]}</p></div></div></div>`).join('')}
+      </div>
+      <div class="footer"><button class="btn" data-go="2">See plans</button></div>
+    </div>`},
+  {key:'Plans', body:`
+    <div class="screen active">
+      <div class="scroll">
+        <h2 class="h1">Choose your plan</h2>
+        <p class="sub">One flat price. Everything included. No hourly billing, ever.</p>
+        <div class="card sel">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div><div class="eyebrow">For individuals</div><h3 class="h2">Individual Trust</h3></div><div class="price">$299</div>
+          </div>
+          <p class="sub" style="margin:8px 0 0">A complete revocable living trust for one person.</p>
+          ${['Revocable living trust','Pour-over will','Financial power of attorney','Healthcare directive'].map(f=>`<div class="feat"><span class="check"></span>${f}</div>`).join('')}
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div><div class="eyebrow">For couples</div><h3 class="h2">Joint Trust</h3></div><div class="price">$399</div>
+          </div>
+          <p class="sub" style="margin:8px 0 0">One shared trust for couples and partners.</p>
+          ${['Joint revocable living trust','Two pour-over wills','Two powers of attorney','Two healthcare directives'].map(f=>`<div class="feat"><span class="check"></span>${f}</div>`).join('')}
+        </div>
+      </div>
+      <div class="footer"><button class="btn" data-go="3">Continue</button></div>
+    </div>`},
+  {key:'Checklist', body:`
+    <div class="screen active">
+      <div class="scroll">
+        <div class="progress"><div class="seg on"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+        <h2 class="h1">Here's what you'll need</h2>
+        <p class="sub">Gather these before you start so the questionnaire goes smoothly. Nothing has to be perfect, and you can change answers later.</p>
+        <div class="card">
+          ${['Full legal names of you and your beneficiaries','A rough list of major assets (home, accounts, vehicles)',"Who you'd like to make decisions if you can't",'About 20–30 minutes (you can pause anytime)']
+            .map((t,i)=>`<div class="feat" style="margin-top:${i?14:0}px"><div class="num" style="width:28px;height:28px;border-radius:14px;font-size:13px;flex:0 0 28px">${i+1}</div>${t}</div>`).join('')}
+        </div>
+      </div>
+      <div class="footer"><button class="btn" data-go="4">I'm ready — continue</button></div>
+    </div>`},
+  {key:'Your details', body:`
+    <div class="screen active">
+      <div class="scroll">
+        <div class="progress"><div class="seg on"></div><div class="seg on"></div><div class="seg"></div><div class="seg"></div></div>
+        <h2 class="h1">Where should we send your documents?</h2>
+        <p class="sub">We'll email your completed trust package and a link to pick up where you left off.</p>
+        <label class="label">Full name</label>
+        <input class="input" placeholder="Jane Doe" />
+        <label class="label">Email</label>
+        <input class="input" placeholder="jane@email.com" />
+        <span class="badge" style="margin-top:8px"><span class="dot"></span>We never sell your information</span>
+      </div>
+      <div class="footer"><button class="btn" data-go="5">Continue to questionnaire</button></div>
+    </div>`},
+  {key:'Questionnaire', body:`
+    <div class="screen active">
+      <div class="scroll">
+        <h2 class="h1">Your questionnaire</h2>
+        <p class="sub">Your secure questionnaire opens right here in the app — your answers flow straight into document generation.</p>
+        <div class="formframe">
+          <span class="pill">Secure form · us_estate_planning</span>
+          <div style="font-family:var(--serif);font-size:18px;color:var(--ink)">299trust.formstack.com</div>
+          <p class="small">The app loads your existing Formstack questionnaire and Stripe payment in-place — nothing rebuilt, nothing changed. A hidden session tag ties this submission back to the app so you can see exactly who completed and who dropped off.</p>
+        </div>
+      </div>
+      <div class="footer"><button class="btn" data-go="6">Submit &amp; finish</button></div>
+    </div>`},
+  {key:'Confirmation', body:`
+    <div class="screen active">
+      <div class="scroll">
+        <div class="checkbig">✓</div>
+        <h2 class="h1">You're all set</h2>
+        <p class="sub">Thank you — your Individual Trust is on its way. Here's what happens next.</p>
+        ${[["We're preparing your documents","Your trust package is being generated now."],
+           ["Check your email","We'll send your completed documents and signing instructions shortly."],
+           ["Sign to make it official","Follow the included guide to sign and, where needed, notarize."]]
+          .map(c=>`<div class="card"><h3 class="h2">${c[0]}</h3><p class="sub" style="margin:6px 0 0">${c[1]}</p></div>`).join('')}
+        <p class="small" style="text-align:center;margin-top:8px">Questions? Email support@299trust.com — a real person will help.</p>
+      </div>
+      <div class="footer"><button class="btn secondary" data-go="0">Start over</button></div>
+    </div>`},
+];
+
+let i = 0;
+const stage = document.getElementById('stage');
+const ind = document.getElementById('ind');
+const prev = document.getElementById('prev');
+const next = document.getElementById('next');
+
+function render(){
+  stage.innerHTML = screens[i].body;
+  ind.textContent = `${i+1}/${screens.length} · ${screens[i].key}`;
+  prev.disabled = i===0; next.disabled = i===screens.length-1;
+  stage.querySelectorAll('[data-go]').forEach(b=>{
+    b.addEventListener('click',()=>{ i = parseInt(b.dataset.go,10); render(); });
+  });
+  const sc = stage.querySelector('.scroll'); if(sc) sc.scrollTop = 0;
+}
+prev.addEventListener('click',()=>{ if(i>0){i--;render();} });
+next.addEventListener('click',()=>{ if(i<screens.length-1){i++;render();} });
+render();
+</script>
+</body>
+</html>
